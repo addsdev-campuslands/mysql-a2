@@ -56,3 +56,6 @@ INSERT INTO `PedidoProducto`(`pedido_id`, `producto_id`, `cantidad`) VALUES
 (5, 8, 1),
 (5, 9, 2),
 (6, 10, 1);
+
+INSERT INTO `Usuarios`(`correo`,`apellido`, `nombre`) VALUES
+('adriana@gmail.com', 'Rueda', 'Adriana');

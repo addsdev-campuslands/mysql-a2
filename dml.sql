@@ -7,7 +7,7 @@ INSERT INTO `Usuarios`(`correo`,`apellido`, `nombre`) VALUES
 ('andres_15@gmail.com', 'Perea' , 'Andres');
 
 
-INSERT INTO `Pedidos`(`usuario_id`,`fecha_pedido`, `total`) VALUES
+INSERT INTO `Pedidos`(`usuario_id_fk`,`fecha_pedido`, `total`) VALUES
 (1, '2023-10-01', 150.00),
 (2, '2023-10-02', 200.00),
 (1, '2023-10-03', 50.25),
@@ -16,7 +16,7 @@ INSERT INTO `Pedidos`(`usuario_id`,`fecha_pedido`, `total`) VALUES
 (5, '2023-10-06', 80.90);
 
 
-INSERT INTO `PedidoProductoCompuesta`(`pedido_id`, `producto_id`, `cantidad`) VALUES
+INSERT INTO `PedidoProducto`(`pedido_id_fk`, `producto_id_fk`, `cantidad`) VALUES
 (1, 1, 5),
 (1, 3, 1),
 (2, 5, 1),
@@ -26,8 +26,8 @@ INSERT INTO `PedidoProductoCompuesta`(`pedido_id`, `producto_id`, `cantidad`) VA
 (5, 9, 2),
 (6, 10, 1);
 
-UPDATE `PedidoProductoCompuesta` SET `cantidad`=100 
-WHERE `pedido_id` = 1 AND `producto_id` = 1;
+UPDATE `PedidoProducto` SET `cantidad`=100 
+WHERE `pedido_id_fk` = 1 AND `producto_id_fk` = 1;
 
 
 
@@ -59,3 +59,20 @@ INSERT INTO `PedidoProducto`(`pedido_id`, `producto_id`, `cantidad`) VALUES
 
 INSERT INTO `Usuarios`(`correo`,`apellido`, `nombre`) VALUES
 ('adriana@gmail.com', 'Rueda', 'Adriana');
+
+
+INSERT INTO `Pedidos`(`usuario_id_fk`, `total`) VALUES
+(1, 150.00);
+
+INSERT INTO `PedidoProducto`(`pedido_id_fk`, `producto_id_fk`, `cantidad`) VALUES(7, 1, 0),(7, 2, -10);
+
+UPDATE `PedidoProducto` SET cantidad = 1 WHERE cantidad < 1;
+
+DELETE FROM `Productos` WHERE producto_id > 10 AND producto_id <= 20;
+
+INSERT INTO `Productos`(`nombre`, `precio_unitario`, `precio_venta`) VALUES('Zapato Deportivo El Mike', 225.00, 390.00);
+
+UPDATE `Pedidos` SET fecha_pedido = CURRENT_DATE WHERE fecha_pedido is NULL;
+
+INSERT INTO `Pedidos`(`usuario_id_fk`, `fecha_pedido`, `total`) VALUES
+(1, '2023-10-01',190.00);

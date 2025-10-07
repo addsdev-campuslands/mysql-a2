@@ -7,9 +7,12 @@ CREATE TABLE `Usuarios` (
   `usuario_id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(50) DEFAULT NULL,
   `apellido` varchar(50) DEFAULT NULL,
-  `correo` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`usuario_id`)
+  `correo` varchar(100) DEFAULT NULL, -- UNIQUE
+  PRIMARY KEY (`usuario_id`),
+  UNIQUE(`correo`)
 );
+
+ALTER TABLE `Usuarios` ADD CONSTRAINT usuarios_corre_uq UNIQUE(`correo`);
 
 CREATE TABLE `Pedidos` (
   `pedido_id` int NOT NULL AUTO_INCREMENT,
@@ -20,6 +23,8 @@ CREATE TABLE `Pedidos` (
   CONSTRAINT `Pedidos_ibfk_1` FOREIGN KEY (`usuario_id_fk`) REFERENCES `Usuarios` (`usuario_id`)
 );
 
+ALTER TABLE `Pedidos` MODIFY `fecha_pedido` date NOT NULL DEFAULT(CURRENT_DATE);
+
 CREATE TABLE `Productos`(
     `producto_id` INT AUTO_INCREMENT,
     `nombre` VARCHAR(50) NOT NULL,
@@ -28,11 +33,26 @@ CREATE TABLE `Productos`(
     PRIMARY KEY (`producto_id`)
 );
 
+ALTER TABLE `Productos` ADD CONSTRAINT producto_precio_chk CHECK(
+  precio_unitario > 0 AND precio_venta >= precio_unitario
+);
+
+-- ALTER TABLE `Productos` DROP CONSTRAINT producto_precio_chk;
+
+
 CREATE TABLE `PedidoProducto`(
     `pedido_id_fk` INT NOT NULL,
     `producto_id_fk` INT NOT NULL,
-    `cantidad` INT NOT NULL DEFAULT 1,
+    `cantidad` INT NOT NULL DEFAULT 1 CHECK(cantidad >=1),
     PRIMARY KEY(`pedido_id_fk`, `producto_id_fk`),
     FOREIGN KEY(`pedido_id_fk`) REFERENCES `Pedidos`(`pedido_id`),
     FOREIGN KEY(`producto_id_fk`) REFERENCES `Productos`(`producto_id`)
 );
+
+ALTER TABLE `PedidoProducto` ADD CONSTRAINT pedido_producto_chk CHECK(cantidad >= 1);
+
+CREATE INDEX idx_pedidos_usuario_fecha ON `Pedidos`(usuario_id_fk, fecha_pedido);
+
+CREATE INDEX idx_productos_nombre ON `Productos`(`nombre`);
+
+DROP INDEX idx_productos_nombre ON `Productos`;

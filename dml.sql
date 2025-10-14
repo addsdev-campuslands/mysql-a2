@@ -61,8 +61,8 @@ INSERT INTO `Usuarios`(`correo`,`apellido`, `nombre`) VALUES
 ('adriana@gmail.com', 'Rueda', 'Adriana');
 
 
-INSERT INTO `Pedidos`(`usuario_id_fk`, `total`) VALUES
-(1, 150.00);
+INSERT INTO `Pedidos`(`usuario_id_fk`, `total`,`estado`) VALUES
+(1, 150.00, 'entregado');
 
 INSERT INTO `PedidoProducto`(`pedido_id_fk`, `producto_id_fk`, `cantidad`) VALUES(7, 1, 0),(7, 2, -10);
 

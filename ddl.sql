@@ -19,6 +19,7 @@ CREATE TABLE `Pedidos` (
   `usuario_id_fk` int DEFAULT NULL,
   `fecha_pedido` date DEFAULT NULL,
   `total` decimal(10,2) DEFAULT NULL,
+  `estado` ENUM('preparacion','cancelado','en_camino','entregado','devuelto') DEFAULT 'preparacion',
   PRIMARY KEY (`pedido_id`),
   CONSTRAINT `Pedidos_ibfk_1` FOREIGN KEY (`usuario_id_fk`) REFERENCES `Usuarios` (`usuario_id`)
 );

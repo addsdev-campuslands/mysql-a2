@@ -106,30 +106,63 @@ CREATE TABLE Cupones(
 
 -- DROP VIEW vw_.....
 CREATE OR REPLACE VIEW vw_top_clientes_compras AS
-SELECT CONCAT_WS(' ',u.apellido,u.nombre) as nombres, usuario_id, SUM(p.total) as total_pedidos, COUNT(p.pedido_id) as cantidad_pedidos, GROUP_CONCAT(p.fecha_pedido) as fechas
+SELECT CONCAT_WS(' ',u.apellido,u.nombre) as nombres, u.usuario_id, SUM(p.total) as total_pedidos, COUNT(p.pedido_id) as cantidad_pedidos, GROUP_CONCAT(p.fecha_pedido) as fechas
 FROM Pedidos p
 INNER JOIN Usuarios u ON p.usuario_id_fk = u.usuario_id
 GROUP BY u.usuario_id ORDER BY total_pedidos DESC;
 
 
 DELIMITER //
-
+DROP PROCEDURE IF EXISTS aplicar_cupon_usuario//
 CREATE PROCEDURE aplicar_cupon_usuario(IN p_total_min DECIMAL(10,2), IN p_cantidad_min INT, IN p_descuento DECIMAL(5,2))
-BEGIN
-  DECLARE p_total_pedidos DECIMAL(10,2) DEFAULT (SELECT total_pedidos FROM vw_top_clientes_compras LIMIT 1);
+BEGIN -- AYYY JUANDiiii
+  DECLARE fin INT DEFAULT 0;
+  DECLARE v_total_pedidos DECIMAL(10,2) DEFAULT 0.00;
+  DECLARE v_usuario_id INT DEFAULT 0;
+  DECLARE v_nombres VARCHAR(200) DEFAULT "";
+  DECLARE v_cantidad_pedidos INT DEFAULT 0;
+  DECLARE v_fechas VARCHAR(200) DEFAULT "";
+  DECLARE cur CURSOR FOR SELECT nombres, usuario_id, total_pedidos, cantidad_pedidos, fechas FROM vw_top_clientes_compras;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = 1;
+  -- Abrir el CURSOR
+  OPEN cur;
+  registros : LOOP
+    FETCH cur INTO v_nombres, v_usuario_id, v_total_pedidos, v_cantidad_pedidos, v_fechas;
+    IF fin = 1 THEN LEAVE registros; END IF;
 
-  DECLARE p_usuario_id INT DEFAULT 0.00;
-
-  SET p_usuario_id = (SELECT usuario_id FROM vw_top_clientes_compras LIMIT 1);
-
-  CASE 
-    WHEN p_total_min >= p_total_pedidos THEN
-      INSERT INTO Cupones(descuento, usuario_id_fk) VALUES(p_descuento, p_usuario_id);
-    ELSE
-      SELECT 'No se le asigno ningun cupon por pato.' as Error;
-  END CASE;
+    CASE 
+      WHEN  v_total_pedidos >= p_total_min THEN
+        INSERT INTO Cupones(descuento, usuario_id_fk) VALUES(p_descuento, v_usuario_id);
+      ELSE
+        SELECT CONCAT_WS(': ','No se le asigno ningun cupon a', v_nombres)as Error;
+    END CASE;
+  END LOOP registros;
+  -- Cerrar el CURSOR
+  CLOSE cur;
 END 
 //
 DELIMITER ;
 
-CALL aplicar_cupon_usuario(100.00, 0, 30.00);
+CALL aplicar_cupon_usuario(100.00, 0, 15.00);
+
+
+--- CREAR UN PROCEDIMIENTO DE ALMACENADO QUE CREE N PEDIDOS PARA UN USUARIO X CON UN VALOR DE 0 Y ESTADO DE PREPARACION
+-- HACIENDO USO DE WHILE
+DELIMITER //
+DROP PROCEDURE IF EXISTS crear_pedidos//
+CREATE PROCEDURE crear_pedidos(IN p_usuario_id INT, IN p_n INT)
+  BEGIN
+    DECLARE i INT DEFAULT 1;
+
+  WHILE i <= p_n DO
+    INSERT INTO Pedidos(usuario_id_fk, total)
+    VALUES (p_usuario_id, 0.00);
+    SET i = i + 1;
+  END WHILE;
+END
+//
+
+DELIMITER ;
+
+CALL crear_pedidos(2,5);
+

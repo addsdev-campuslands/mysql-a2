@@ -166,3 +166,74 @@ DELIMITER ;
 
 CALL crear_pedidos(2,5);
 
+
+
+DELIMITER $$
+DROP FUNCTION fn_total_pedido $$
+CREATE FUNCTION fn_total_pedido(p_pedido_id INT)
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+  DECLARE v_total DECIMAL(10,2);
+
+  SELECT IFNULL(SUM(pp.cantidad * pr.precio_venta), 0.00) INTO v_total FROM Pedidos p 
+  INNER JOIN PedidoProducto pp ON p.pedido_id = pp.pedido_id_fk
+  INNER JOIN Productos pr ON pp.producto_id_fk = pr.producto_id
+  WHERE p.pedido_id = p_pedido_id;
+  
+  RETURN v_total;
+END
+$$
+DELIMITER ;
+
+SELECT p.pedido_id, p.fecha_pedido, fn_total_pedido(p.pedido_id) as TotalPedido 
+FROM Pedidos p;
+
+
+
+
+
+DELIMITER $$
+DROP FUNCTION fn_cantidad_pedido $$
+CREATE FUNCTION fn_cantidad_pedido(p_pedido_id INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+  DECLARE v_total INT;
+
+  SELECT SUM(pp.cantidad) INTO v_total FROM PedidoProducto pp
+  WHERE pp.pedido_id_fk = p_pedido_id;
+
+  RETURN IFNULL(v_total, 0);
+END
+$$
+DELIMITER ;
+
+SELECT p.pedido_id, p.fecha_pedido, fn_cantidad_pedido(p.pedido_id) as TotalCantidad,
+fn_total_pedido(p.pedido_id) as TotalPedido
+FROM Pedidos p;
+
+
+-- SE REQUIERE UNA FUNCION QUE RETORNE LA CANTIDAD DE DINERO DE PEDIDOS POR UN RANGO DE FECHAS ESPECIFICOS.
+-- SE REQUIERE UNA FUNCION PARA SABER LA CANTIDAD POR PRODUCTOS VENDIDOS
+
+DELIMITER $$
+DROP FUNCTION IF EXISTS fn_total_ventas_rango $$
+CREATE FUNCTION fn_total_ventas_rango(p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+  DECLARE v_total DECIMAL(10,2);
+
+  SELECT SUM(pp.cantidad * pr.precio_venta) INTO v_total
+  FROM Pedidos p 
+  INNER JOIN PedidoProducto pp ON p.pedido_id = pp.pedido_id_fk
+  INNER JOIN Productos pr ON pp.producto_id_fk = pr.producto_id
+  WHERE p.fecha_pedido BETWEEN p_fecha_inicio AND p_fecha_fin;
+
+  RETURN v_total;
+END $$
+DELIMITER ;
+
+SELECT fn_total_ventas_rango('2023-10-03', CURRENT_DATE) as TotalVentas;
+SELECT fn_total_ventas_rango('2023-10-05', '2023-10-06') as TotalVentas;

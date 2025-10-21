@@ -336,3 +336,44 @@ SELECT * FROM PedidoProducto WHERE pedido_id_fk = 15; -- 15
 UPDATE PedidoProducto SET cantidad = 1 WHERE pedido_id_fk = 15 AND producto_id_fk = 1;
 
 UPDATE `Productos` SET precio_venta = 150 WHERE producto_id = 1;
+
+
+SET GLOBAL event_scheduler = ON;
+
+CREATE TABLE `Reportes`(
+  `reporte_id` INT AUTO_INCREMENT,
+  `fecha_reporte` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `total` DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY(`reporte_id`)
+);
+
+CREATE TABLE `EventosLogs`(
+  `log_id` INT AUTO_INCREMENT,
+  `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `evento` VARCHAR(50) NOT NULL,
+  PRIMARY KEY(`log_id`)
+);
+
+DELIMITER //
+CREATE EVENT ev_reporte_diario_ventas
+ON SCHEDULE EVERY 1 DAY -- AT '2025-10-21 12:00:00'
+  STARTS NOW() + INTERVAL 1 MINUTE
+  ENDS NOW() + INTERVAL 1 MONTH
+  ON COMPLETION PRESERVE -- NOT PRESERVE
+  DO
+  BEGIN
+    INSERT INTO `EventosLogs`(`evento`) VALUES('ev_reporte_diario_ventas');
+    INSERT INTO `Reportes`(`total`) VALUES(IFNULL(fn_total_ventas_rango(NOW(), NOW()), 0.00));
+  END
+//
+DELIMITER ;
+SELECT * FROM `EventosLogs`;
+SELECT * FROM `Reportes`; 
+SELECT fn_total_ventas_rango(NOW(), NOW()) as TotalVentas;
+INSERT INTO `Pedidos` VALUES(NULL, 2, NOW(), 0.00);
+SELECT * FROM `Pedidos` WHERE pedido_id = LAST_INSERT_ID();
+INSERT INTO `PedidoProducto` VALUES(LAST_INSERT_ID(), 1, 2);
+INSERT INTO `PedidoProducto` VALUES(LAST_INSERT_ID(), 2, 1);
+INSERT INTO `PedidoProducto` VALUES(LAST_INSERT_ID(), 3, 3);
+SELECT LAST_INSERT_ID();
+DESCRIBE PedidoProducto;
